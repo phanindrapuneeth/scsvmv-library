@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const INTEREST_OPTIONS = [
   "AI",
@@ -12,22 +12,38 @@ const INTEREST_OPTIONS = [
   "Mobile Development",
   "Cloud Computing",
   "Cybersecurity",
+  "Data Science",
+  "Machine Learning",
+  "Networking",
+  "Operating Systems",
+  "Computer Architecture",
+  "Software Engineering",
 ];
 
 export default function InterestsPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
+  useEffect(() => {
+    // Load interests from local storage on component mount
+    const storedInterests = localStorage.getItem("selectedInterests");
+    if (storedInterests) {
+      setSelectedInterests(JSON.parse(storedInterests));
+    }
+  }, []);
+
   const handleInterestChange = (interest: string) => {
-    setSelectedInterests((prev) =>
-      prev.includes(interest)
+    setSelectedInterests((prev) => {
+      const newInterests = prev.includes(interest)
         ? prev.filter((item) => item !== interest)
-        : [...prev, interest]
-    );
+        : [...prev, interest];
+      return newInterests;
+    });
   };
 
   const handleSubmit = () => {
-    // Implement logic to save selected interests
-    alert(`Selected interests: ${selectedInterests.join(", ")}`);
+    // Save selected interests to local storage
+    localStorage.setItem("selectedInterests", JSON.stringify(selectedInterests));
+    alert(`Selected interests: ${selectedInterests.join(", ")} saved!`);
   };
 
   return (
