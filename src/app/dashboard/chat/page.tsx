@@ -2,18 +2,26 @@
 
 import { recommendBooks } from "@/ai/flows/recommend-books";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ChatPage() {
   const [prompt, setPrompt] = useState("");
   const [recommendations, setRecommendations] = useState<
     { title: string; author: string; difficulty: string }[]
   >([]);
+  const [interests, setInterests] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Load interests from local storage on component mount
+    const storedInterests = localStorage.getItem("selectedInterests");
+    if (storedInterests) {
+      setInterests(JSON.parse(storedInterests));
+    }
+  }, []);
 
   const handleRecommendation = async () => {
-    const result = await recommendBooks({ prompt: prompt });
+    const result = await recommendBooks({ prompt: prompt, interests: interests });
     setRecommendations(result.recommendations);
   };
 
@@ -30,7 +38,7 @@ export default function ChatPage() {
         onChange={(e) => setPrompt(e.target.value)}
         className="resize-none"
       />
-      <Button onClick={handleRecommendation}>Get Recommendations</Button>
+      <Button onClick={handleRecommendation} disabled={interests.length === 0}>Get Recommendations</Button>
 
       {recommendations.length > 0 && (
         <div className="mt-4">

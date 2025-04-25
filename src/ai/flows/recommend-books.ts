@@ -1,4 +1,3 @@
-// src/ai/flows/recommend-books.ts
 'use server';
 /**
  * @fileOverview A book recommendation AI agent that suggests books based on user prompts specifying difficulty levels.
@@ -14,6 +13,7 @@ import {getBookRecommendations} from '@/services/book-recommendation';
 
 const RecommendBooksInputSchema = z.object({
   prompt: z.string().describe('The user prompt requesting book recommendations.'),
+  interests: z.array(z.string()).describe('A list of the user\'s interests.'),
 });
 export type RecommendBooksInput = z.infer<typeof RecommendBooksInputSchema>;
 
@@ -37,6 +37,7 @@ const recommendBooksPrompt = ai.definePrompt({
   input: {
     schema: z.object({
       prompt: z.string().describe('The user prompt requesting book recommendations.'),
+      interests: z.array(z.string()).describe('A list of the user\'s interests.'),
     }),
   },
   output: {
@@ -50,11 +51,12 @@ const recommendBooksPrompt = ai.definePrompt({
       ).describe('A list of book recommendations based on the prompt.'),
     }),
   },
-  prompt: `You are a book recommendation expert. Based on the user's prompt, you will provide a list of book recommendations.
+  prompt: `You are a book recommendation expert. Based on the user's prompt and interests, you will provide a list of book recommendations.
 
   User Prompt: {{{prompt}}}
+  User Interests: {{interests}}
 
-  Ensure that the book recommendations align with the difficulty level requested in the prompt (Beginner, Intermediate, Advanced).  Return an array of book recommendations.
+  Ensure that you recommend at least two books for each difficulty level (Beginner, Intermediate, Advanced) that is relevant to the prompt and user interests. Return an array of book recommendations. The difficulty level should be appropriate for the user's background in computer science. If interests includes "AI", then make sure to include AI related books.
   `,
 });
 
@@ -68,7 +70,7 @@ const recommendBooksFlow = ai.defineFlow<
 }, async (input) => {
   // Call the getBookRecommendations service to get initial recommendations
   // based on interest and difficulty.
-  // const recommendations = await getBookRecommendations(input.interests, input.difficulty);
+  const recommendations = await getBookRecommendations(input.interests, 'Beginner');
   const { output } = await recommendBooksPrompt(input);
 
   return {
