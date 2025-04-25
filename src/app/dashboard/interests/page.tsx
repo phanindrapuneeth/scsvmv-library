@@ -3,8 +3,10 @@
 import { getBookRecommendations } from "@/services/book-recommendation";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Book } from "@/services/book-recommendation"; // Import Book interface
+
 
 const INTEREST_OPTIONS = [
   "AI",
@@ -28,14 +30,19 @@ const INTEREST_OPTIONS = [
   "Internet of Things (IoT)",
   "Virtual Reality (VR)",
   "Augmented Reality (AR)",
+  "Computer Graphics",
+  "Distributed Systems",
+  "Human-Computer Interaction",
+  "Bioinformatics",
+  "Natural Language Processing",
+  "Big Data",
 ];
 
 export default function InterestsPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [recommendations, setRecommendations] = useState<
-    { title: string; author: string; difficulty: string }[]
-  >([]);
-  const router = useRouter();
+  const [recommendations, setRecommendations] = useState<Book[]>([]); // Use Book interface
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Load interests from local storage on component mount
@@ -45,42 +52,39 @@ export default function InterestsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      if (selectedInterests.length > 0) {
-        const recommendations = await getBookRecommendations(
-          selectedInterests,
-          "Beginner"
-        );
-        setRecommendations(recommendations);
+  const handleInterestChange = (interest: string) => {
+    setSelectedInterests((prev) => {
+      if (prev.includes(interest)) {
+        return prev.filter((i) => i !== interest);
       } else {
-        setRecommendations([]);
+        return [...prev, interest];
       }
-    };
-    fetchRecommendations();
-  }, [selectedInterests]);
- 
-
-   const handleInterestChange = (interest: string) => {
-     setSelectedInterests((prev) => {
-       if (prev.includes(interest)) {
-         return prev.filter((i) => i !== interest);
-       } else {
-         return [...prev, interest];
-       }
-     });
-   };
+    });
+  };
 
   const handleGetRecommendations = async () => {
-    // Save selected interests to local storage
-    localStorage.setItem(
-      "selectedInterests",
-      JSON.stringify(selectedInterests)
-    );
-    
-    // Fetch and set recommendations immediately
-    const recommendations = await getBookRecommendations(selectedInterests, 'Beginner');
-    setRecommendations(recommendations);
+    setLoading(true);
+    setError(null);
+    try {
+      // Save selected interests to local storage
+      localStorage.setItem(
+        "selectedInterests",
+        JSON.stringify(selectedInterests)
+      );
+
+      // Fetch and set recommendations immediately
+      const recommendations = await getBookRecommendations(selectedInterests, 'Beginner');
+      setRecommendations(recommendations);
+
+      if (!recommendations || recommendations.length === 0) {
+        setError("No recommendations found for the selected interests.");
+      }
+    } catch (e: any) {
+      console.error("Error fetching recommendations:", e);
+      setError("Failed to fetch recommendations. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -109,12 +113,19 @@ export default function InterestsPage() {
       </div>
       <Button
         onClick={handleGetRecommendations}
-        disabled={selectedInterests.length === 0}
+        disabled={selectedInterests.length === 0 || loading}
       >
-        Get Recommendations
+        {loading ? "Loading..." : "Get Recommendations"}
       </Button>
 
-      {recommendations.length > 0 && (
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {recommendations && recommendations.length > 0 && (
         <div className="mt-4">
           <h2 className="text-lg font-semibold">Recommendations:</h2>
           <ul>

@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A book recommendation AI agent that suggests books based on user prompts specifying difficulty levels.
+ * @fileOverview A book recommendation AI agent that suggests books based on user prompts and interests, categorized by difficulty levels.
  *
  * - recommendBooks - A function that handles the book recommendation process.
  * - RecommendBooksInput - The input type for the recommendBooks function.
@@ -22,7 +22,7 @@ const RecommendBooksOutputSchema = z.object({
     z.object({
       title: z.string().describe('The title of the book.'),
       author: z.string().describe('The author of the book.'),
-      difficulty: z.string().describe('The difficulty level of the book.'),
+      difficulty: z.string().describe('The difficulty level of the book (Beginner, Intermediate, Advanced).'),
     })
   ).describe('A list of book recommendations based on the prompt.'),
 });
@@ -56,7 +56,7 @@ const recommendBooksPrompt = ai.definePrompt({
   User Prompt: {{{prompt}}}
   User Interests: {{interests}}
 
-  Ensure that you recommend at least two books for each difficulty level (Beginner, Intermediate, Advanced) that is relevant to the prompt and user interests. Return an array of book recommendations. The difficulty level should be appropriate for the user's background in computer science. If interests includes "AI", then make sure to include AI related books.
+  Return an array of book recommendations. The difficulty level should be appropriate for the user's background in computer science. If interests includes "AI", then make sure to include AI related books.
   `,
 });
 
