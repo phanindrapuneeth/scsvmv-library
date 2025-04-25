@@ -40,7 +40,7 @@ export default function ChatPage() {
       />
       <Button onClick={handleRecommendation} disabled={interests.length === 0}>Get Recommendations</Button>
 
-      {recommendations.length > 0 && (
+      {recommendations && recommendations.length > 0 && (
         <div className="mt-4">
           <h2 className="text-lg font-semibold">Recommendations:</h2>
           <ul>
@@ -56,3 +56,4 @@ export default function ChatPage() {
     </div>
   );
 }
+

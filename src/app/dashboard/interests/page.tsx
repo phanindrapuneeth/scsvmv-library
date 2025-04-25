@@ -3,6 +3,7 @@
 import { getBookRecommendations } from "@/services/book-recommendation";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 const INTEREST_OPTIONS = [
@@ -34,6 +35,7 @@ export default function InterestsPage() {
   const [recommendations, setRecommendations] = useState<
     { title: string; author: string; difficulty: string }[]
   >([]);
+  const router = useRouter();
 
   useEffect(() => {
     // Load interests from local storage on component mount
@@ -44,7 +46,6 @@ export default function InterestsPage() {
   }, []);
 
   useEffect(() => {
-    // Fetch recommendations whenever selectedInterests change
     const fetchRecommendations = async () => {
       if (selectedInterests.length > 0) {
         const recommendations = await getBookRecommendations(
@@ -53,20 +54,33 @@ export default function InterestsPage() {
         );
         setRecommendations(recommendations);
       } else {
-        setRecommendations([]); // Clear recommendations if no interests are selected
+        setRecommendations([]);
       }
     };
-
     fetchRecommendations();
   }, [selectedInterests]);
+ 
 
-  const handleInterestChange = (interest: string) => {
-    setSelectedInterests((prev) => {
-      const newInterests = prev.includes(interest)
-        ? prev.filter((item) => item !== interest)
-        : [...prev, interest];
-      return newInterests;
-    });
+   const handleInterestChange = (interest: string) => {
+     setSelectedInterests((prev) => {
+       if (prev.includes(interest)) {
+         return prev.filter((i) => i !== interest);
+       } else {
+         return [...prev, interest];
+       }
+     });
+   };
+
+  const handleGetRecommendations = async () => {
+    // Save selected interests to local storage
+    localStorage.setItem(
+      "selectedInterests",
+      JSON.stringify(selectedInterests)
+    );
+    
+    // Fetch and set recommendations immediately
+    const recommendations = await getBookRecommendations(selectedInterests, 'Beginner');
+    setRecommendations(recommendations);
   };
 
   return (
@@ -76,9 +90,9 @@ export default function InterestsPage() {
         Choose your areas of interest to personalize your book recommendations.
       </p>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {INTEREST_OPTIONS.map((interest) => (
-          <div key={interest} className="space-y-2">
+          <div key={interest} className="flex items-center space-x-2">
             <Checkbox
               id={interest}
               checked={selectedInterests.includes(interest)}
@@ -93,6 +107,12 @@ export default function InterestsPage() {
           </div>
         ))}
       </div>
+      <Button
+        onClick={handleGetRecommendations}
+        disabled={selectedInterests.length === 0}
+      >
+        Get Recommendations
+      </Button>
 
       {recommendations.length > 0 && (
         <div className="mt-4">
@@ -100,8 +120,7 @@ export default function InterestsPage() {
           <ul>
             {recommendations.map((book, index) => (
               <li key={index} className="py-2">
-                <span className="font-medium">{book.title}</span> by{" "}
-                {book.author} ({book.difficulty})
+                <span className="font-medium">{book.title}</span> by {book.author} ({book.difficulty})
               </li>
             ))}
           </ul>
@@ -110,4 +129,3 @@ export default function InterestsPage() {
     </div>
   );
 }
-
