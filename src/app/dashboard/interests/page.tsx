@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const INTEREST_OPTIONS = [
   "AI",
@@ -18,10 +19,19 @@ const INTEREST_OPTIONS = [
   "Operating Systems",
   "Computer Architecture",
   "Software Engineering",
+  "Game Development",
+  "UI/UX Design",
+  "Quantum Computing",
+  "Blockchain Technology",
+  "Robotics",
+  "Internet of Things (IoT)",
+  "Virtual Reality (VR)",
+  "Augmented Reality (AR)",
 ];
 
 export default function InterestsPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     // Load interests from local storage on component mount
@@ -40,10 +50,13 @@ export default function InterestsPage() {
     });
   };
 
-  const handleSubmit = () => {
+  const handleGetRecommendations = () => {
     // Save selected interests to local storage
-    localStorage.setItem("selectedInterests", JSON.stringify(selectedInterests));
-    alert(`Selected interests: ${selectedInterests.join(", ")} saved!`);
+    localStorage.setItem(
+      "selectedInterests",
+      JSON.stringify(selectedInterests)
+    );
+    router.push("/dashboard/chat"); // Navigate to the chat page
   };
 
   return (
@@ -71,8 +84,11 @@ export default function InterestsPage() {
         ))}
       </div>
 
-      <Button onClick={handleSubmit} disabled={selectedInterests.length === 0}>
-        Save Interests
+      <Button
+        onClick={handleGetRecommendations}
+        disabled={selectedInterests.length === 0}
+      >
+        Get Recommendations
       </Button>
     </div>
   );
