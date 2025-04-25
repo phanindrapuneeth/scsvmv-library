@@ -27,11 +27,6 @@ const navigation = [
     href: "/dashboard/chat",
   },
   {
-    label: "Book Recommendations",
-    icon: Book,
-    href: "/dashboard/recommendations",
-  },
-  {
     label: "Scheduling",
     icon: Calendar,
     href: "/dashboard/scheduling",
@@ -90,3 +85,4 @@ export default function Dashboard() {
     </SidebarProvider>
   );
 }
+
