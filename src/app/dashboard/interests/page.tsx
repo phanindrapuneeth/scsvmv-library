@@ -1,9 +1,9 @@
 "use client";
 
+import { getBookRecommendations } from "@/services/book-recommendation";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 const INTEREST_OPTIONS = [
   "AI",
@@ -31,7 +31,9 @@ const INTEREST_OPTIONS = [
 
 export default function InterestsPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const router = useRouter();
+  const [recommendations, setRecommendations] = useState<
+    { title: string; author: string; difficulty: string }[]
+  >([]);
 
   useEffect(() => {
     // Load interests from local storage on component mount
@@ -41,6 +43,23 @@ export default function InterestsPage() {
     }
   }, []);
 
+  useEffect(() => {
+    // Fetch recommendations whenever selectedInterests change
+    const fetchRecommendations = async () => {
+      if (selectedInterests.length > 0) {
+        const recommendations = await getBookRecommendations(
+          selectedInterests,
+          "Beginner"
+        );
+        setRecommendations(recommendations);
+      } else {
+        setRecommendations([]); // Clear recommendations if no interests are selected
+      }
+    };
+
+    fetchRecommendations();
+  }, [selectedInterests]);
+
   const handleInterestChange = (interest: string) => {
     setSelectedInterests((prev) => {
       const newInterests = prev.includes(interest)
@@ -48,15 +67,6 @@ export default function InterestsPage() {
         : [...prev, interest];
       return newInterests;
     });
-  };
-
-  const handleGetRecommendations = () => {
-    // Save selected interests to local storage
-    localStorage.setItem(
-      "selectedInterests",
-      JSON.stringify(selectedInterests)
-    );
-    router.push("/dashboard/chat"); // Navigate to the chat page
   };
 
   return (
@@ -84,12 +94,20 @@ export default function InterestsPage() {
         ))}
       </div>
 
-      <Button
-        onClick={handleGetRecommendations}
-        disabled={selectedInterests.length === 0}
-      >
-        Get Recommendations
-      </Button>
+      {recommendations.length > 0 && (
+        <div className="mt-4">
+          <h2 className="text-lg font-semibold">Recommendations:</h2>
+          <ul>
+            {recommendations.map((book, index) => (
+              <li key={index} className="py-2">
+                <span className="font-medium">{book.title}</span> by{" "}
+                {book.author} ({book.difficulty})
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
+
